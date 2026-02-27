@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>সাহিত্য কানন | নিরাপদ আপলোড</title>
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --text: #ffffff;
+            --light-bg: #f4f4f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            background-color: var(--light-bg);
+            color: #333;
+        }
+
+        /* হেডার ডিজাইন */
+        header {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9)), url('https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=1000');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        /* বাটন ও কন্ট্রোল */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: -30px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s transform;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-add {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-config {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-reset {
+            background-color: #555;
+            color: white;
+            font-size: 11px;
+        }
+
+        /* মোডাল ডিজাইন */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* কার্ড ডিজাইন */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid var(--accent);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+        }
+
+        .content-display {
+            white-space: pre-wrap;
+            /* এটি নিউ লাইন ধরে রাখে */
+            font-size: 15px;
+            line-height: 1.7;
+            color: #444;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+
+        .section-title {
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>সাহিত্য কানন</h1>
+        <p>গল্প ও কবিতার নিরাপদ ডিজিটাল সংগ্রহশালা</p>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <button id="mainAddBtn" class="btn-add hidden" onclick="toggleModal('postModal', true)">+ নতুন লিখা</button>
+            <button class="btn-config" onclick="toggleModal('configModal', true)">সেটিংস (API)</button>
+            <button class="btn-reset" onclick="resetApp()">রিসেট</button>
+        </div>
+
+        <div id="loading" style="text-align: center; display: none;">লোড হচ্ছে...</div>
+
+        <h2 class="section-title">গল্পগুচ্ছ</h2>
+        <div id="storyGrid" class="grid"></div>
+
+        <h2 class="section-title">কবিতা সংকলন</h2>
+        <div id="poemGrid" class="grid"></div>
+    </div>
+
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <h2>API সেটিংস</h2>
+            <p style="font-size: 13px; color: #666;">এই কি (Key) গুলো আপনার ব্রাউজারে সেভ থাকবে, কোডে নয়।</p>
+            <input type="password" id="mKey" placeholder="Master Key (JSONBin)">
+            <input type="text" id="bId" placeholder="Bin ID">
+            <button class="btn-add" style="width:100%" onclick="saveSettings()">সেভ ও কানেক্ট</button>
+            <button onclick="toggleModal('configModal', false)"
+                style="background:none; border:none; color:red; margin-top:10px; cursor:pointer;">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div id="postModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h2>নতুন সৃষ্টি যোগ করুন</h2>
+            <select id="type">
+                <option value="story">গল্প</option>
+                <option value="poem">কবিতা</option>
+            </select>
+            <input type="text" id="title" placeholder="শিরোনাম">
+            <input type="text" id="author" placeholder="লেখকের নাম">
+            <textarea id="content" rows="10" placeholder="আপনার লেখাটি এখানে লিখুন বা পেস্ট করুন..."></textarea>
+            <button class="btn-add" style="width:100%" onclick="uploadPost()">প্রকাশ করুন</button>
+            <button onclick="toggleModal('postModal', false)"
+                style="background:none; border:none; color:#777; margin-top:10px; cursor:pointer;">বাতিল</button>
+        </div>
+    </div>
+
+    <script>
+        let db = { stories: [], poems: [] };
+        let MASTER_KEY = localStorage.getItem('mk_kanon') || "";
+        let BIN_ID = localStorage.getItem('bid_kanon') || "";
+
+        // ইনিশিয়াল চেক
+        if (MASTER_KEY && BIN_ID) {
+            document.getElementById('mainAddBtn').classList.remove('hidden');
+            fetchData();
+        }
+
+        function toggleModal(id, show) {
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
+        }
+
+        function saveSettings() {
+            const mk = document.getElementById('mKey').value.trim();
+            const bi = document.getElementById('bId').value.trim();
+            if (!mk || !bi) return alert("তথ্য দিন!");
+
+            localStorage.setItem('mk_kanon', mk);
+            localStorage.setItem('bid_kanon', bi);
+            location.reload();
+        }
+
+        function resetApp() {
+            if (confirm("সব সেটিংস মুছে ফেলতে চান?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        async function fetchData() {
+            document.getElementById('loading').style.display = 'block';
+            try {
+                const res = await fetch('/api/publish');
+                if (!res.ok) throw new Error();
+                db = await res.json();
+                renderUI();
+            } catch (e) {
+                console.error("ডেটা লোড করতে সমস্যা:", e);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function uploadPost() {
+            const type = document.getElementById('type').value; // গল্প না কবিতা
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const content = document.getElementById('content').value;
+
+            if (!title || !content) return alert("শিরোনাম এবং মূল লেখা আবশ্যক!");
+
+            // এখানে আমরা কোনো চাবি (Key) দিচ্ছি না, শুধু ডেটা গুছিয়ে নিচ্ছি
+            const postData = {
+                type,
+                title,
+                author: author || 'অজানা',
+                content,
+                date: new Date().toLocaleDateString('bn-BD')
+            };
+
+            try {
+                // লকাল বা সরাসরি JSONBin-এ রিকোয়েস্ট পাঠানোর বদলে আমরা আমাদের API-তে পাঠাচ্ছি
+                // এই '/api/publish' লিঙ্কটি Vercel-এ হোস্ট করলে কাজ করবে
+                const res = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(postData)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert("সফলভাবে প্রকাশিত হয়েছে!");
+                    toggleModal('postModal', false);
+
+                    // ইনপুট বক্স খালি করা
+                    document.getElementById('title').value = '';
+                    document.getElementById('author').value = '';
+                    document.getElementById('content').value = '';
+
+                    // নতুন ডেটা দেখানোর জন্য পেজ রিফ্রেশ বা ডেটা রি-ফেচ করা
+                    fetchData();
+                } else {
+                    alert("ভুল হয়েছে: " + (result.error || "সার্ভার সমস্যা"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("আপলোড ব্যর্থ হয়েছে! সম্ভবত সার্ভার কনফিগার করা নেই।");
+            }
+        }
+
+        function renderUI() {
+            const sGrid = document.getElementById('storyGrid');
+            const pGrid = document.getElementById('poemGrid');
+            sGrid.innerHTML = ''; pGrid.innerHTML = '';
+
+            (db.stories || []).forEach(item => {
+                sGrid.innerHTML += `<div class="card"><h3>${item.title}</h3><small>লেখক: ${item.author || 'অজানা'}</small><div class="content-display">${item.content}</div></div>`;
+            });
+
+            (db.poems || []).forEach(item => {
+                pGrid.innerHTML += `<div class="card"><h3>${item.title}</h3><small>লেখক: ${item.author || 'অজানা'}</small><div class="content-display">${item.content}</div></div>`;
+            });
+        }
+    </script>
+
+</body>
+
+</html>
