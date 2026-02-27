@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>সাহিত্য কানন | নিরাপদ আপলোড</title>
+    <title>সাহিত্য কানন | গল্প ও কবিতা আপলোড</title>
     <style>
         :root {
             --primary: #1a1a2e;
@@ -21,7 +21,6 @@
             color: #333;
         }
 
-        /* হেডার ডিজাইন */
         header {
             background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9)), url('https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=1000');
             background-size: cover;
@@ -38,7 +37,6 @@
             padding: 20px;
         }
 
-        /* বাটন ও কন্ট্রোল */
         .controls {
             display: flex;
             justify-content: center;
@@ -77,7 +75,6 @@
             font-size: 11px;
         }
 
-        /* মোডাল ডিজাইন */
         .modal {
             display: none;
             position: fixed;
@@ -112,7 +109,6 @@
             font-size: 16px;
         }
 
-        /* কার্ড ডিজাইন */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -139,7 +135,7 @@
 
         .content-display {
             white-space: pre-wrap;
-            /* এটি নিউ লাইন ধরে রাখে */
+            /* লাইন ব্রেক বজায় রাখে */
             font-size: 15px;
             line-height: 1.7;
             color: #444;
@@ -165,32 +161,33 @@
 
     <header>
         <h1>সাহিত্য কানন</h1>
-        <p>গল্প ও কবিতার নিরাপদ ডিজিটাল সংগ্রহশালা</p>
+        <p>আপনার প্রিয় গল্প ও কবিতা আপলোড করুন</p>
     </header>
 
     <div class="container">
         <div class="controls">
-            <button id="mainAddBtn" class="btn-add hidden" onclick="toggleModal('postModal', true)">+ নতুন লিখা</button>
-            <button class="btn-config" onclick="toggleModal('configModal', true)">সেটিংস (API)</button>
+            <button id="mainAddBtn" class="btn-add" onclick="toggleModal('postModal', true)">+ নতুন লেখা যোগ
+                করুন</button>
+            <button class="btn-config" onclick="toggleModal('configModal', true)">সেটিংস</button>
             <button class="btn-reset" onclick="resetApp()">রিসেট</button>
         </div>
 
         <div id="loading" style="text-align: center; display: none;">লোড হচ্ছে...</div>
 
-        <h2 class="section-title">গল্পগুচ্ছ</h2>
-        <div id="storyGrid" class="grid"></div>
-
         <h2 class="section-title">কবিতা সংকলন</h2>
         <div id="poemGrid" class="grid"></div>
+
+        <h2 class="section-title">গল্পগুচ্ছ</h2>
+        <div id="storyGrid" class="grid"></div>
     </div>
 
     <div id="configModal" class="modal">
         <div class="modal-content">
             <h2>API সেটিংস</h2>
-            <p style="font-size: 13px; color: #666;">এই কি (Key) গুলো আপনার ব্রাউজারে সেভ থাকবে, কোডে নয়।</p>
+            <p style="font-size: 13px; color: #666;">আপনার Master Key এবং Bin ID দিয়ে কানেক্ট করুন।</p>
             <input type="password" id="mKey" placeholder="Master Key (JSONBin)">
             <input type="text" id="bId" placeholder="Bin ID">
-            <button class="btn-add" style="width:100%" onclick="saveSettings()">সেভ ও কানেক্ট</button>
+            <button class="btn-add" style="width:100%" onclick="saveSettings()">সেভ করুন</button>
             <button onclick="toggleModal('configModal', false)"
                 style="background:none; border:none; color:red; margin-top:10px; cursor:pointer;">বন্ধ করুন</button>
         </div>
@@ -199,13 +196,15 @@
     <div id="postModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <h2>নতুন সৃষ্টি যোগ করুন</h2>
+            <label for="type">ধরণ নির্বাচন করুন:</label>
             <select id="type">
-                <option value="story">গল্প</option>
                 <option value="poem">কবিতা</option>
+                <option value="story">গল্প</option>
             </select>
-            <input type="text" id="title" placeholder="শিরোনাম">
+            <input type="text" id="title" placeholder="কবিতা বা গল্পের নাম">
             <input type="text" id="author" placeholder="লেখকের নাম">
-            <textarea id="content" rows="10" placeholder="আপনার লেখাটি এখানে লিখুন বা পেস্ট করুন..."></textarea>
+            <textarea id="content" rows="10"
+                placeholder="আপনার লেখাটি এখানে লিখুন বা পেস্ট করুন (Enter দিলে নিউ লাইন তৈরি হবে)..."></textarea>
             <button class="btn-add" style="width:100%" onclick="uploadPost()">প্রকাশ করুন</button>
             <button onclick="toggleModal('postModal', false)"
                 style="background:none; border:none; color:#777; margin-top:10px; cursor:pointer;">বাতিল</button>
@@ -214,14 +213,11 @@
 
     <script>
         let db = { stories: [], poems: [] };
-        let MASTER_KEY = localStorage.getItem('mk_kanon') || "";
-        let BIN_ID = localStorage.getItem('bid_kanon') || "";
 
-        // ইনিশিয়াল চেক
-        if (MASTER_KEY && BIN_ID) {
-            document.getElementById('mainAddBtn').classList.remove('hidden');
+        // পেজ লোড হলে ডেটা ফেচ করা
+        window.onload = function () {
             fetchData();
-        }
+        };
 
         function toggleModal(id, show) {
             document.getElementById(id).style.display = show ? 'flex' : 'none';
@@ -230,8 +226,7 @@
         function saveSettings() {
             const mk = document.getElementById('mKey').value.trim();
             const bi = document.getElementById('bId').value.trim();
-            if (!mk || !bi) return alert("তথ্য দিন!");
-
+            if (!mk || !bi) return alert("সব তথ্য দিন!");
             localStorage.setItem('mk_kanon', mk);
             localStorage.setItem('bid_kanon', bi);
             location.reload();
@@ -247,26 +242,28 @@
         async function fetchData() {
             document.getElementById('loading').style.display = 'block';
             try {
+                // আপনার সার্ভারলেস ফাংশন বা প্রক্সি এপিআই কল
                 const res = await fetch('/api/publish');
                 if (!res.ok) throw new Error();
                 db = await res.json();
                 renderUI();
             } catch (e) {
                 console.error("ডেটা লোড করতে সমস্যা:", e);
+                // যদি এপিআই না থাকে তবে লোকাল মেসেজ
+                document.getElementById('poemGrid').innerHTML = "<p>ডেটা লোড করা যাচ্ছে না। API কনফিগারেশন চেক করুন।</p>";
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
         async function uploadPost() {
-            const type = document.getElementById('type').value; // গল্প না কবিতা
+            const type = document.getElementById('type').value;
             const title = document.getElementById('title').value;
             const author = document.getElementById('author').value;
             const content = document.getElementById('content').value;
 
             if (!title || !content) return alert("শিরোনাম এবং মূল লেখা আবশ্যক!");
 
-            // এখানে আমরা কোনো চাবি (Key) দিচ্ছি না, শুধু ডেটা গুছিয়ে নিচ্ছি
             const postData = {
                 type,
                 title,
@@ -276,35 +273,24 @@
             };
 
             try {
-                // লকাল বা সরাসরি JSONBin-এ রিকোয়েস্ট পাঠানোর বদলে আমরা আমাদের API-তে পাঠাচ্ছি
-                // এই '/api/publish' লিঙ্কটি Vercel-এ হোস্ট করলে কাজ করবে
                 const res = await fetch('/api/publish', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(postData)
                 });
-
-                const result = await res.json();
 
                 if (res.ok) {
                     alert("সফলভাবে প্রকাশিত হয়েছে!");
                     toggleModal('postModal', false);
-
-                    // ইনপুট বক্স খালি করা
                     document.getElementById('title').value = '';
                     document.getElementById('author').value = '';
                     document.getElementById('content').value = '';
-
-                    // নতুন ডেটা দেখানোর জন্য পেজ রিফ্রেশ বা ডেটা রি-ফেচ করা
-                    fetchData();
+                    fetchData(); // রিফ্রেশ ডেটা
                 } else {
-                    alert("ভুল হয়েছে: " + (result.error || "সার্ভার সমস্যা"));
+                    alert("প্রকাশ করতে সমস্যা হয়েছে।");
                 }
             } catch (e) {
-                console.error(e);
-                alert("আপলোড ব্যর্থ হয়েছে! সম্ভবত সার্ভার কনফিগার করা নেই।");
+                alert("সার্ভার কানেকশন পাওয়া যায়নি।");
             }
         }
 
@@ -313,16 +299,35 @@
             const pGrid = document.getElementById('poemGrid');
             sGrid.innerHTML = ''; pGrid.innerHTML = '';
 
-            (db.stories || []).forEach(item => {
-                sGrid.innerHTML += `<div class="card"><h3>${item.title}</h3><small>লেখক: ${item.author || 'অজানা'}</small><div class="content-display">${item.content}</div></div>`;
-            });
+            // কবিতা রেন্ডারিং
+            if (db.poems && db.poems.length > 0) {
+                db.poems.forEach(item => {
+                    pGrid.innerHTML += `
+                        <div class="card" style="border-left-color: #9b59b6;">
+                            <h3>${item.title}</h3>
+                            <small>কবি: ${item.author || 'অজানা'}</small>
+                            <div class="content-display">${item.content}</div>
+                        </div>`;
+                });
+            } else {
+                pGrid.innerHTML = "<p>কোনো কবিতা পাওয়া যায়নি।</p>";
+            }
 
-            (db.poems || []).forEach(item => {
-                pGrid.innerHTML += `<div class="card"><h3>${item.title}</h3><small>লেখক: ${item.author || 'অজানা'}</small><div class="content-display">${item.content}</div></div>`;
-            });
+            // গল্প রেন্ডারিং
+            if (db.stories && db.stories.length > 0) {
+                db.stories.forEach(item => {
+                    sGrid.innerHTML += `
+                        <div class="card">
+                            <h3>${item.title}</h3>
+                            <small>লেখক: ${item.author || 'অজানা'}</small>
+                            <div class="content-display">${item.content}</div>
+                        </div>`;
+                });
+            } else {
+                sGrid.innerHTML = "<p>কোনো গল্প পাওয়া যায়নি।</p>";
+            }
         }
     </script>
-
 </body>
 
 </html>
